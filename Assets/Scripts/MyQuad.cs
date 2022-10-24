@@ -5,7 +5,7 @@ using UnityEngine;
 public class MyQuad
 {
     public Mesh mesh;
-    public MyQuad(QuadSide quadSide, Vector2Int uv)
+    public MyQuad(QuadSide quadSide, Vector2Int uv, Vector3 position)
     {
         mesh = new Mesh
         {
@@ -27,14 +27,14 @@ public class MyQuad
         Vector2 uv01 = new Vector2(uvX0 * 0.0625f, uvY1 * 0.0625f);
         Vector2 uv11 = new Vector2(uvX1 * 0.0625f, uvY1 * 0.0625f);
 
-        Vector3 v0 = new Vector3(-0.5f, -0.5f, 0.5f);
-        Vector3 v1 = new Vector3(0.5f, -0.5f, 0.5f);
-        Vector3 v2 = new Vector3(0.5f, -0.5f, -0.5f);
-        Vector3 v3 = new Vector3(-0.5f, -0.5f, -0.5f);
-        Vector3 v4 = new Vector3(-0.5f, 0.5f, 0.5f);
-        Vector3 v5 = new Vector3(0.5f, 0.5f, 0.5f);
-        Vector3 v6 = new Vector3(0.5f, 0.5f, -0.5f);
-        Vector3 v7 = new Vector3(-0.5f, 0.5f, -0.5f);
+        Vector3 v0 = new Vector3(-0.5f, -0.5f, 0.5f) + position;
+        Vector3 v1 = new Vector3(0.5f, -0.5f, 0.5f) + position;
+        Vector3 v2 = new Vector3(0.5f, -0.5f, -0.5f) + position;
+        Vector3 v3 = new Vector3(-0.5f, -0.5f, -0.5f) + position;
+        Vector3 v4 = new Vector3(-0.5f, 0.5f, 0.5f) + position;
+        Vector3 v5 = new Vector3(0.5f, 0.5f, 0.5f) + position;
+        Vector3 v6 = new Vector3(0.5f, 0.5f, -0.5f) + position;
+        Vector3 v7 = new Vector3(-0.5f, 0.5f, -0.5f) + position;
 
 
         switch (quadSide)

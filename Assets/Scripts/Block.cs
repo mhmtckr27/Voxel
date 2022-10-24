@@ -5,21 +5,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class Block : MonoBehaviour
+public class Block
 {
-    [SerializeField] private BlockData _blockData;
-    [SerializeField] private Material _atlasMat;
-    private MeshFilter _meshFilter;
-    private MeshRenderer _meshRenderer;
+    private BlockData _blockData;
+    public Mesh Mesh;
     
-    void Start()
+    public Block(BlockData blockData, Vector3 position)
     {
-        
-        Debug.Log(_blockData.GetUV(QuadSide.Front));
-        _meshFilter = gameObject.AddComponent<MeshFilter>();
-        _meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        _meshRenderer.material = _atlasMat;
-
+        _blockData = blockData;
         MyQuad[] myQuads = new MyQuad[6];
 
         Array quadSideArray = System.Enum.GetValues(typeof(QuadSide));
@@ -27,20 +20,12 @@ public class Block : MonoBehaviour
         for (int i = 0; i < quadSideArray.Length; i++)
         {
             QuadSide quadSide = (QuadSide)quadSideArray.GetValue(i);
-            myQuads[i] = new MyQuad(quadSide, _blockData.GetUV(quadSide));
+            myQuads[i] = new MyQuad(quadSide, _blockData.GetUV(quadSide), position);
         }
 
         var meshes = myQuads.Select(x => x.mesh).ToArray(); 
         
-        Mesh combinedMesh = MeshUtils.CombineMeshes(meshes);
-
-        _meshFilter.mesh = combinedMesh;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Mesh = MeshUtils.CombineMeshes(meshes);
     }
 }
 
