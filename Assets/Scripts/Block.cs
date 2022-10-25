@@ -9,20 +9,29 @@ public class Block
 {
     private BlockData _blockData;
     public Mesh Mesh;
+    private Chunk _parentChunk;
     
-    public Block(BlockData blockData, Vector3 position)
+    public Block(BlockData blockData, Vector3Int position, Chunk parentChunk)
     {
         _blockData = blockData;
-        MyQuad[] myQuads = new MyQuad[6];
+        _parentChunk = parentChunk;
+        List<MyQuad> myQuads = new List<MyQuad>();
 
+        if(blockData.blockType == BlockType.Air)
+            return;
+        
         Array quadSideArray = System.Enum.GetValues(typeof(QuadSide));
         
         for (int i = 0; i < quadSideArray.Length; i++)
         {
             QuadSide quadSide = (QuadSide)quadSideArray.GetValue(i);
-            myQuads[i] = new MyQuad(quadSide, _blockData.GetUV(quadSide), position);
+            if(!_parentChunk.HasNeighbour(position, quadSide))
+                myQuads.Add(new MyQuad(quadSide, _blockData.GetUV(quadSide), position));
         }
-
+        
+        if(myQuads.Count == 0)
+            return;
+        
         var meshes = myQuads.Select(x => x.mesh).ToArray(); 
         
         Mesh = MeshUtils.CombineMeshes(meshes);
@@ -45,5 +54,6 @@ public enum BlockType
     Dirt,
     Stone,
     Water,
-    Sand
+    Sand,
+    Air
 }

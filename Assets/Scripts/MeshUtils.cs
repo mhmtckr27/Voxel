@@ -85,4 +85,20 @@ public static class MeshUtils
 
         return combinedMesh;
     }
+    
+    
+    public static float FractalBrownianMotion(float x, float z, int octaveCount, float xzMultiplier, float heightMultiplier, float yOffset)
+    {
+        float total = 0;
+        float frequency = 1;
+        for (int i = 0; i < octaveCount; i++)
+        {
+            total += Mathf.PerlinNoise(x * xzMultiplier * frequency, z * xzMultiplier * frequency) * heightMultiplier;
+            frequency *= 2;
+        }
+
+        total += yOffset;
+        
+        return total;
+    }
 }
