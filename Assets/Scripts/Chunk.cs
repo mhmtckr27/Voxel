@@ -14,14 +14,8 @@ using Random = UnityEngine.Random;
 public class Chunk : MonoBehaviour
 {
     [SerializeField] private Vector3Int chunkSize;
-    [ShowInInspector] private Dictionary<BlockType, BlockData> blockDatas;
     [SerializeField] private Material atlasMat;
-    
-    [Title("Perlin Noise")]
-    [SerializeField] private float heightMultiplier = 2f;
-    [SerializeField] private float xzMultiplier = 0.5f;
-    [SerializeField] private int octaveCount = 1;
-    [SerializeField] private float yOffset;
+
 
     private int ChunkSizeTotal => chunkSize.x * chunkSize.y * chunkSize.z;
 
@@ -36,46 +30,62 @@ public class Chunk : MonoBehaviour
     // z = index / (chunkSizeX * chunkSizeZ)
     private BlockType[] _blockTypes;
 
+    public void Init(Vector3Int chunkSize, Material atlasMat)
+    {
+        this.chunkSize = chunkSize;
+        this.atlasMat = atlasMat;
+    }
+
     private void PopulateChunkTypesArray()
     {
         _blockTypes = new BlockType[ChunkSizeTotal];
-
-        // int counter = 0;
-        // for (int x = 0; x < chunkSize.x; x++)
-        // {
-        //     for (int y = 0; y < chunkSize.y; y++)
-        //     {
-        //         for (int z = 0; z < chunkSize.z; z++)
-        //         {
-        //             float yFract = MeshUtils.FractalBrownianMotion(x, z, octaveCount, xzMultiplier, heightMultiplier, yOffset);
-        //             
-        //             if(y < yFract)
-        //                 _blockTypes[counter] = BlockType.Dirt;
-        //             else
-        //                 _blockTypes[counter] = BlockType.Air;
-        //
-        //             counter++;
-        //         }
-        //     }
-        // }
         
         for (int i = 0; i < ChunkSizeTotal; i++)
         {
             Vector3Int coords = GetCoordinates(i);
-            float y = MeshUtils.FractalBrownianMotion(coords.x, coords.z, octaveCount, xzMultiplier, heightMultiplier, yOffset);
-            if(coords.y < y)
-                _blockTypes[i] = BlockType.Dirt;
-            else
+            Vector3 position = transform.position;
+            float x = coords.x + (int) position.x;
+            float z = coords.z + (int) position.z;
+
+            List<int> yList = new List<int>();
+            for (int j = 0; j < WorldCreator.Layers.Count; j++)
+            {
+                int y = (int) MeshUtils.FractalBrownianMotion(x, z, WorldCreator.Layers[j].layerParams);
+                yList.Add(y);
+            }
+
+            if (coords.y <= yList[0])
+                _blockTypes[i] = WorldCreator.Layers[0].blockType;
+            else if (coords.y == yList.Last())
+                _blockTypes[i] = BlockType.Grass;
+            else if(coords.y > yList.Last())
                 _blockTypes[i] = BlockType.Air;
+            // else if(coords.y == yList[0])
+                // _blockTypes[i] = BlockType.Grass;
+            else
+            {
+                int index = 0;
+                while (index < WorldCreator.Layers.Count - 1 && coords.y > yList[index])
+                    index++;
+
+                _blockTypes[i] = WorldCreator.Layers[index - 1].blockType;
+            }
+
+            // if(blockCoordY == perlinY)
+            //     toReturn = BlockType.Grass;
+            // else if (blockCoordY < perlinY)
+            //     toReturn = BlockType.Dirt;
+            // else
+            //     toReturn = BlockType.Air;
+
         }
     }
     
     [Button]
-    void Test()
+    public void GenerateChunk()
     {
-        RefreshBlockDatas();
-        _meshFilter = GetComponent<MeshFilter>() ?? gameObject.AddComponent<MeshFilter>();
-        _meshRenderer = GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
+        _meshFilter = gameObject.AddComponent<MeshFilter>();
+        _meshRenderer = gameObject.AddComponent<MeshRenderer>();
         _meshRenderer.material = atlasMat;
         _blocks = new Block[chunkSize.x, chunkSize.y, chunkSize.z];
         PopulateChunkTypesArray();
@@ -97,7 +107,7 @@ public class Chunk : MonoBehaviour
                 for (int z = 0; z < chunkSize.z; z++)
                 {
                     BlockType blockType = GetBlockDataFrom(new Vector3Int(x, y, z));
-                    _blocks[x, y, z] = new Block(blockDatas[blockType], new Vector3Int(x, y, z), this);
+                    _blocks[x, y, z] = new Block(WorldCreator.BlockDatas[blockType], new Vector3Int(x, y, z), this);
                     if (_blocks[x, y, z].Mesh != null)
                     {
                         inputMeshes.Add(_blocks[x, y, z].Mesh);
@@ -150,18 +160,7 @@ public class Chunk : MonoBehaviour
         newMesh.RecalculateBounds();
 
         _meshFilter.mesh = newMesh;
-    }
-
-    private void RefreshBlockDatas()
-    {
-        blockDatas = new Dictionary<BlockType, BlockData>();
-
-        var blockDataAssets = Resources.LoadAll("Blocks", typeof(BlockData)).Cast<BlockData>();
-
-        foreach (BlockData blockDataAsset in blockDataAssets)
-        {
-            blockDatas.Add(blockDataAsset.blockType, blockDataAsset);
-        }
+        gameObject.AddComponent<MeshCollider>().sharedMesh = _meshFilter.sharedMesh;
     }
 
     struct ProcessMeshDataJob : IJobParallelFor

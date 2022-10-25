@@ -87,17 +87,17 @@ public static class MeshUtils
     }
     
     
-    public static float FractalBrownianMotion(float x, float z, int octaveCount, float xzMultiplier, float heightMultiplier, float yOffset)
+    public static float FractalBrownianMotion(float x, float z, LayerParams layerParams)
     {
         float total = 0;
         float frequency = 1;
-        for (int i = 0; i < octaveCount; i++)
+        for (int i = 0; i < layerParams.octaveCount; i++)
         {
-            total += Mathf.PerlinNoise(x * xzMultiplier * frequency, z * xzMultiplier * frequency) * heightMultiplier;
+            total += Mathf.PerlinNoise(x * layerParams.xzMultiplier * frequency, z * layerParams.xzMultiplier * frequency) * layerParams.heightMultiplier;
             frequency *= 2;
         }
 
-        total += yOffset;
+        total += layerParams.yOffset;
         
         return total;
     }
