@@ -55,5 +55,6 @@ public enum BlockType
     Stone,
     Water,
     Sand,
-    Air
+    Air,
+    WorldBottom,
 }

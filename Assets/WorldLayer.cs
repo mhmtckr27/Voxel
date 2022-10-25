@@ -19,7 +19,7 @@ public class WorldLayer : MonoBehaviour
 
     private void Graph()
     {
-        int z = 65;
+        int z = -1;
         Vector3[] positions = new Vector3[lineRenderer.positionCount];
         for (int x = 0; x < positions.Length; x++)
         {
@@ -38,7 +38,8 @@ public class WorldLayer : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        UnityEditor.Handles.Label(lineRenderer.GetPosition(0) + Vector3.up * 2, name);
+        UnityEditor.Handles.color = Color.black;
+        UnityEditor.Handles.Label(lineRenderer.GetPosition(0) + Vector3.up * 4 + Vector3.left * 3, name, new GUIStyle(){fontSize = 16});
     }
 #endif
 }

@@ -55,13 +55,11 @@ public class Chunk : MonoBehaviour
             }
 
             if (coords.y <= yList[0])
-                _blockTypes[i] = WorldCreator.Layers[0].blockType;
+                _blockTypes[i] = BlockType.WorldBottom;
             else if (coords.y == yList.Last())
                 _blockTypes[i] = BlockType.Grass;
             else if(coords.y > yList.Last())
                 _blockTypes[i] = BlockType.Air;
-            // else if(coords.y == yList[0])
-                // _blockTypes[i] = BlockType.Grass;
             else
             {
                 int index = 0;
@@ -70,14 +68,6 @@ public class Chunk : MonoBehaviour
 
                 _blockTypes[i] = WorldCreator.Layers[index - 1].blockType;
             }
-
-            // if(blockCoordY == perlinY)
-            //     toReturn = BlockType.Grass;
-            // else if (blockCoordY < perlinY)
-            //     toReturn = BlockType.Dirt;
-            // else
-            //     toReturn = BlockType.Air;
-
         }
     }
     
