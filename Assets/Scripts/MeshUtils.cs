@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2>;
+using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2, UnityEngine.Vector2>;
 
 public static class MeshUtils
 {
@@ -33,8 +33,9 @@ public static class MeshUtils
                 Vector3 v = meshes[i].vertices[j];
                 Vector3 n = meshes[i].normals[j];
                 Vector2 u = meshes[i].uv[j];
+                Vector2 u2 = meshes[i].uv2[j];
 
-                VertexData vData = new VertexData(v, n, u);
+                VertexData vData = new VertexData(v, n, u, u2);
 
                 if (!vertexHashSet.Contains(vData))
                 {
@@ -52,8 +53,9 @@ public static class MeshUtils
                 Vector3 v = meshes[i].vertices[triIndex];
                 Vector3 n = meshes[i].normals[triIndex];
                 Vector2 u = meshes[i].uv[triIndex];
+                Vector2 u2 = meshes[i].uv2[triIndex];
 
-                VertexData vData = new VertexData(v, n, u);
+                VertexData vData = new VertexData(v, n, u, u2);
 
                 int index;
                 vertexOrders.TryGetValue(vData, out index);
@@ -66,6 +68,7 @@ public static class MeshUtils
         Vector3[] vertices = new Vector3[vertexOrders.Count];
         Vector3[] normals = new Vector3[vertexOrders.Count];
         Vector2[] uvs = new Vector2[vertexOrders.Count];
+        Vector2[] uvs2 = new Vector2[vertexOrders.Count];
 
 
         for (int i = 0; i < vertexOrders.Count; i++)
@@ -74,11 +77,13 @@ public static class MeshUtils
             vertices[i] = keyValuePair.Key.Item1;
             normals[i] = keyValuePair.Key.Item2;
             uvs[i] = keyValuePair.Key.Item3;
+            uvs2[i] = keyValuePair.Key.Item4;
         }
 
         combinedMesh.vertices = vertices;
         combinedMesh.normals = normals;
         combinedMesh.uv = uvs;
+        combinedMesh.uv2 = uvs2;
         combinedMesh.triangles = triangles.ToArray();
         
         combinedMesh.RecalculateBounds();

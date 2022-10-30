@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class WorldCreator : MonoBehaviour
+public class World : MonoBehaviour
 {
     [SerializeField] private Material atlasMat;
     [SerializeField] private Vector3Int chunkCount;
@@ -26,14 +26,25 @@ public class WorldCreator : MonoBehaviour
     // [ShowInInspector] public static WorldLayer CaveLayer;
     [ShowInInspector] public static PerlinGrapher3D CaveGrapher;
 
-    [ShowInInspector]  private HashSet<Vector3Int> _chunkCoordinates = new();
+    [ShowInInspector] private HashSet<Vector3Int> _chunkCoordinates = new();
     [ShowInInspector] private HashSet<Vector2Int> _chunkColumns = new();
     [ShowInInspector] private Dictionary<Vector3Int, Chunk> _chunks = new();
+
+    public HashSet<Vector3Int> ChunkCoordinates => _chunkCoordinates;
+    public HashSet<Vector2Int> ChunkColumns => _chunkColumns;
+    public Dictionary<Vector3Int, Chunk> Chunks => _chunks;
+    public GameObject Player => player;
+    public Vector3Int ChunkSize => chunkSize;
+    public Vector3Int ChunkCount => chunkCount;
 
     private Vector3Int lastBuiltPosition;
 
     private Queue<IEnumerator> generateWorldQueue = new();
 
+    public bool loadFromFile = true;
+
+    
+    
     private void Update()
     {
         if(drawBox)
@@ -180,6 +191,10 @@ public class WorldCreator : MonoBehaviour
         {
             DestroyImmediate(chunksParent.transform.GetChild(0).gameObject);
         }
+        
+        _chunks.Clear();
+        _chunkColumns.Clear();
+        _chunkCoordinates.Clear();
     }
     
     [Button]
@@ -195,7 +210,10 @@ public class WorldCreator : MonoBehaviour
         mainWorldCamera.SetActive(true);
         loadingBar.maxValue = chunkCount.x * chunkCount.z;
         loadingBar.value = 0;
-        StartCoroutine(GenerateWorldRoutine());
+        if(loadFromFile)
+            StartCoroutine(LoadWorld());
+        else
+            StartCoroutine(GenerateWorldRoutine());
     }
 
     IEnumerator GenerateWorldExtensionRoutine()
@@ -273,7 +291,7 @@ public class WorldCreator : MonoBehaviour
             chunkObj.transform.position = chunkCoords;
             chunkObj.transform.SetParent(chunksParent);
             Chunk chunk = chunkObj.AddComponent<Chunk>();
-            chunk.Init(chunkSize, atlasMat);
+            chunk.Init(chunkSize, atlasMat, null);
             chunk.GenerateChunk();
             _chunkCoordinates.Add(chunkCoords);
             _chunks.TryAdd(chunkCoords, chunk);
@@ -361,6 +379,53 @@ public class WorldCreator : MonoBehaviour
             Vector3Int chunkCoordToHide = new Vector3Int(x * chunkSize.x, y * chunkSize.y, z * chunkSize.z);
             if(_chunkCoordinates.Contains(chunkCoordToHide))
                 _chunks[chunkCoordToHide].ShowChunk(false);
+        }
+    }
+
+    public IEnumerator LoadWorld()
+    {
+        WorldSaveData worldSaveData = WorldSaver.Load("World_2022_10_30___22_58_26.dat");
+
+        if (worldSaveData == null)
+            yield break;
+
+        _chunkCoordinates = new HashSet<Vector3Int>();
+        foreach (SerializableVector3Int chunkCoordinate in worldSaveData.chunkCoordinates)
+        {
+            _chunkCoordinates.Add(chunkCoordinate);
+        }
+
+        _chunkColumns = new HashSet<Vector2Int>();
+        foreach (SerializableVector2Int chunkColumn in worldSaveData.chunkColumns)
+        {
+            _chunkColumns.Add(chunkColumn);
+        }
+
+        loadingBar.maxValue = _chunkCoordinates.Count;
+        loadingBar.value = 0;
+        
+        _chunks = new Dictionary<Vector3Int, Chunk>();
+        for (int i = 0; i < _chunkCoordinates.Count; i++)
+        {
+            Vector3Int chunkCoords = _chunkCoordinates.ElementAt(i);
+            GameObject chunkObj = new GameObject($"Chunk_{chunkCoords.x}_{chunkCoords.y}_{chunkCoords.z}");
+            chunkObj.transform.position = chunkCoords;
+            chunkObj.transform.SetParent(chunksParent);
+            Chunk chunk = chunkObj.AddComponent<Chunk>();
+            chunk.Init(chunkSize, atlasMat, worldSaveData.chunkSaveDatas[i].blockTypes);
+            chunk.GenerateChunk(false);
+            _chunks.TryAdd(chunkCoords, chunk);
+            _chunks[chunkCoords].ShowChunk(true);
+            loadingBar.value++;
+            yield return null;
+        }
+
+        player.transform.position = worldSaveData.playerPosition;
+        
+        if(Application.isPlaying)
+        {
+            mainWorldCamera.SetActive(false);
+            player.SetActive(true);
         }
     }
 

@@ -71,7 +71,7 @@ namespace StarterAssets
 		private CharacterController _controller;
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
-		private WorldCreator _world;
+		private World _world;
 		
 		private const float _threshold = 0.01f;
 
@@ -100,7 +100,7 @@ namespace StarterAssets
 		{
 			_controller = GetComponent<CharacterController>();
 			_input = GetComponent<StarterAssetsInputs>();
-			_world = FindObjectOfType<WorldCreator>();
+			_world = FindObjectOfType<World>();
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 			_playerInput = GetComponent<PlayerInput>();
 #else
@@ -118,8 +118,18 @@ namespace StarterAssets
 			GroundedCheck();
 			Move();
 			DigOrBuild();
+			Save();
 		}
 
+		private void Save()
+		{
+			if (_input.save)
+			{
+				_input.save = false;
+				WorldSaver.Save(_world);
+			}
+		}
+		
 		private void DigOrBuild()
 		{
 			if (_input.dig)

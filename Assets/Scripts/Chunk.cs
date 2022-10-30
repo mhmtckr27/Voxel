@@ -29,15 +29,20 @@ public class Chunk : MonoBehaviour
     // y = (index / chunkSizeX) % chunkSizeZ
     // z = index / (chunkSizeX * chunkSizeZ)
     
-    private BlockType[] _blockTypes;
+    [ShowInInspector] private BlockType[] _blockTypes;
+    private int[] _damageLevels;
     private PopulateBlockTypesJob _populateBlockTypesJob;
     
     private JobHandle _populateBlockTypesJobHandle;
 
-    public void Init(Vector3Int chunkSize, Material atlasMat)
+    public BlockType[] GetBlockTypes() => _blockTypes;
+    
+    public void Init(Vector3Int chunkSize, Material atlasMat, BlockType[] blockTypes)
     {
         this.chunkSize = chunkSize;
         this.atlasMat = atlasMat;
+        this._blockTypes = blockTypes;
+        _damageLevels = new int[ChunkSizeTotal];
     }
 
     public void ShowChunk(bool show)
@@ -48,8 +53,10 @@ public class Chunk : MonoBehaviour
     private void PopulateBlockTypesArray()
     {
         _blockTypes = new BlockType[ChunkSizeTotal];
+        _damageLevels = new int[ChunkSizeTotal];
 
         NativeArray<BlockType> blockTypes = new NativeArray<BlockType>(_blockTypes, Allocator.Persistent);
+        NativeArray<int> damageLevels = new NativeArray<int>(_damageLevels, Allocator.Persistent);
 
         var randomGenerators = new Unity.Mathematics.Random[ChunkSizeTotal];
 
@@ -63,6 +70,7 @@ public class Chunk : MonoBehaviour
         _populateBlockTypesJob = new PopulateBlockTypesJob()
         {
             BlockTypes = blockTypes,
+            DamageLevels = damageLevels,
             ChunkSize = chunkSize,
             Location = transform.position,
             RandomGenerators = _randomGenerators,
@@ -73,8 +81,11 @@ public class Chunk : MonoBehaviour
         _populateBlockTypesJobHandle.Complete();
 
         _populateBlockTypesJob.BlockTypes.CopyTo(_blockTypes);
+        _populateBlockTypesJob.DamageLevels.CopyTo(_damageLevels);
+        
         
         blockTypes.Dispose();
+        damageLevels.Dispose();
         _randomGenerators.Dispose();
     }
 
@@ -108,7 +119,8 @@ public class Chunk : MonoBehaviour
                 for (int z = 0; z < chunkSize.z; z++)
                 {
                     BlockType blockType = GetBlockDataFrom(new Vector3Int(x, y, z));
-                    _blocks[x, y, z] = new Block(WorldCreator.BlockDatas[blockType], new Vector3Int(x, y, z), this);
+                    int damageLevel = _damageLevels[FromCoordinates(new Vector3Int(x, y, z))];
+                    _blocks[x, y, z] = new Block(World.BlockDatas[blockType], new Vector3Int(x, y, z), this, damageLevel);
                     if (_blocks[x, y, z].Mesh != null)
                     {
                         inputMeshes.Add(_blocks[x, y, z].Mesh);
@@ -135,7 +147,8 @@ public class Chunk : MonoBehaviour
         jobs.OutputMesh.SetVertexBufferParams(vertexStart,
             new VertexAttributeDescriptor(VertexAttribute.Position, stream: 0),
             new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2));
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord1, stream: 3));
 
         JobHandle jobHandle = jobs.Schedule(inputMeshes.Count, 4);
 
@@ -226,7 +239,7 @@ public class Chunk : MonoBehaviour
         // y = (index / chunkSizeX) % chunkSizeZ
         // z = index / (chunkSizeX * chunkSizeZ)
         
-        int index = coords.x + chunkSize.x * (coords.y + chunkSize.y * coords.z);
+        int index = FromCoordinates(coords);
         if (coords.x < 0 || coords.x > chunkSize.x - 1 ||
             coords.y < 0 || coords.y > chunkSize.y - 1 ||
             coords.z < 0 || coords.z > chunkSize.z - 1)
@@ -238,7 +251,10 @@ public class Chunk : MonoBehaviour
     public void Dig(Vector3Int blockCoord)
     {
         int blockIndex = FromCoordinates(blockCoord);
-        _blockTypes[blockIndex] = BlockType.Air;
+        // _blockTypes[blockIndex] = BlockType.Air;
+        _damageLevels[blockIndex]++;
+        if (_damageLevels[blockIndex] == 10)
+            _blockTypes[blockIndex] = BlockType.Air;
         DestroyImmediate(_meshRenderer);
         DestroyImmediate(_meshFilter);
         DestroyImmediate(_meshCollider);
@@ -278,20 +294,26 @@ public class Chunk : MonoBehaviour
             var uvs = new NativeArray<float3>(vertexCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             mesh.GetUVs(0, uvs.Reinterpret<Vector3>());
 
+            var uvs2 = new NativeArray<float3>(vertexCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            mesh.GetUVs(1, uvs2.Reinterpret<Vector3>());
+
             var outputVertices = OutputMesh.GetVertexData<Vector3>(stream: 0);
             var outputNormals = OutputMesh.GetVertexData<Vector3>(stream: 1);
             var outputUVs = OutputMesh.GetVertexData<Vector3>(stream: 2);
+            var outputUVs2 = OutputMesh.GetVertexData<Vector3>(stream: 3);
 
             for (int i = 0; i < vertexCount; i++)
             {
                 outputVertices[vertexStart + i] = vertices[i];
                 outputNormals[vertexStart + i] = normals[i];
                 outputUVs[vertexStart + i] = uvs[i];
+                outputUVs2[vertexStart + i] = uvs2[i];
             }
 
             vertices.Dispose();
             normals.Dispose();
             uvs.Dispose();
+            uvs2.Dispose();
 
             int triangleStart = TriangleStartArray[index];
             int triangleCount = mesh.GetSubMesh(0).indexCount;
@@ -321,6 +343,7 @@ public class Chunk : MonoBehaviour
     struct PopulateBlockTypesJob : IJobParallelFor
     {
         public NativeArray<BlockType> BlockTypes;
+        public NativeArray<int> DamageLevels;
         public Vector3Int ChunkSize;
         public Vector3 Location;
         public NativeArray<Unity.Mathematics.Random> RandomGenerators;
@@ -337,15 +360,17 @@ public class Chunk : MonoBehaviour
             var randomGenerator = RandomGenerators[i];
             
             List<int> yList = new List<int>();
-            for (int j = 0; j < WorldCreator.Layers.Count; j++)
+            for (int j = 0; j < World.Layers.Count; j++)
             {
-                int y = (int) MeshUtils.FractalBrownianMotion(coordX, coordZ, WorldCreator.Layers[j].layerParams);
+                int y = (int) MeshUtils.FractalBrownianMotion(coordX, coordZ, World.Layers[j].layerParams);
                 yList.Add(y);
             }
 
-            float yCave = MeshUtils.FractalBrownianMotion3D(coordX, coordY, coordZ, WorldCreator.CaveGrapher.layerParams);
+            float yCave = MeshUtils.FractalBrownianMotion3D(coordX, coordY, coordZ, World.CaveGrapher.layerParams);
             // Debug.LogError("HAYRIII " + yCave);
 
+            DamageLevels[i] = 0;
+            
             if (coordY == 0)
             {
                 BlockTypes[i] = BlockType.WorldBottom;
@@ -358,10 +383,10 @@ public class Chunk : MonoBehaviour
             }
             else if(coordY == yList.Last())
             {
-                List<ProbabilityData> probabilityDatas = WorldCreator.Layers.Last().layerParams.probabilityDatas;
+                List<ProbabilityData> probabilityDatas = World.Layers.Last().layerParams.probabilityDatas;
                 
                 if(probabilityDatas == null || probabilityDatas.Count == 0)
-                    BlockTypes[i] = WorldCreator.Layers.Last().blockType;
+                    BlockTypes[i] = World.Layers.Last().blockType;
                 else
                 {
                     float random = RandomGenerator.NextFloat(0f, 1f);
@@ -380,13 +405,13 @@ public class Chunk : MonoBehaviour
             else
             {
                 int index = 0;
-                while (index < WorldCreator.Layers.Count && coordY > yList[index])
+                while (index < World.Layers.Count && coordY > yList[index])
                     index++;
 
-                List<ProbabilityData> probabilityDatas = WorldCreator.Layers[index - 1].layerParams.probabilityDatas;
+                List<ProbabilityData> probabilityDatas = World.Layers[index - 1].layerParams.probabilityDatas;
                 
                 if(probabilityDatas == null || probabilityDatas.Count == 0)
-                    BlockTypes[i] = WorldCreator.Layers[index - 1].blockType;
+                    BlockTypes[i] = World.Layers[index - 1].blockType;
                 else
                 {
                     float random = RandomGenerator.NextFloat(0f, 1f);
@@ -403,7 +428,7 @@ public class Chunk : MonoBehaviour
                 }
             }
 
-            if (yCave < WorldCreator.CaveGrapher.drawCutoff)
+            if (yCave < World.CaveGrapher.drawCutoff)
                 BlockTypes[i] = BlockType.Air;
         }
         

@@ -15,6 +15,7 @@ namespace StarterAssets
 		public bool sprint;
 		public bool dig;
 		public bool build;
+		public bool save;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -71,13 +72,17 @@ namespace StarterAssets
 
 		public void OnDig(InputAction.CallbackContext context)
 		{
-			// Debug.LogError("HAYRI : " + context.duration);
-			// DigInput(context.performed);
+			DigInput(context.ReadValueAsButton());
 		}
 
 		public void OnBuild(InputAction.CallbackContext context)
 		{
-			BuildInput(context.performed);
+			BuildInput(context.ReadValueAsButton());
+		}
+		
+		public void OnSave(InputAction.CallbackContext context)
+		{
+			SaveInput(context.ReadValueAsButton());
 		}
 #endif
 
@@ -110,6 +115,11 @@ namespace StarterAssets
 		private void BuildInput(bool newBuildState)
 		{
 			build = newBuildState;
+		}
+
+		private void SaveInput(bool newSaveState)
+		{
+			save = newSaveState;
 		}
 		
 		private void OnApplicationFocus(bool hasFocus)
