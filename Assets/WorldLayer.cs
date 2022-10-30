@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -51,6 +52,13 @@ public class LayerParams
     [SerializeField] public float xzMultiplier = 0.5f;
     [SerializeField] public int octaveCount = 1;
     [SerializeField] public float yOffset;
-    [SerializeField] public float probability;
+    [SerializeField] public List<ProbabilityData> probabilityDatas;
     [SerializeField] public string worldLayerTag;
+}
+
+[Serializable]
+public struct ProbabilityData
+{
+    public BlockType blockType;
+    public float probability;
 }

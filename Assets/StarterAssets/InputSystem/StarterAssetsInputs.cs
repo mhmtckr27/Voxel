@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
@@ -12,6 +13,8 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
+		public bool dig;
+		public bool build;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -21,27 +24,60 @@ namespace StarterAssets
 		public bool cursorInputForLook = true;
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
-		public void OnMove(InputValue value)
+
+
+		private void Awake()
 		{
-			MoveInput(value.Get<Vector2>());
+			// Let's create a button action bound to the A button
+			// on the gamepad.
+			var action = new InputAction(
+				type: InputActionType.Button,
+				binding: "<Mouse>/leftButton");
+
+// When the action is performed (which will happen when the
+// button is pressed and then released) we take the duration
+// of the press to determine how many projectiles to spawn.
+			action.performed +=
+				context =>
+				{
+					Debug.LogError("HAYRI "  + context.duration);
+					DigInput(context.duration > 3f);
+				};
+
 		}
 
-		public void OnLook(InputValue value)
+		public void OnMove(InputAction.CallbackContext context)
+		{
+			MoveInput(context.ReadValue<Vector2>());
+		}
+
+		public void OnLook(InputAction.CallbackContext context)
 		{
 			if(cursorInputForLook)
 			{
-				LookInput(value.Get<Vector2>());
+				LookInput(context.ReadValue<Vector2>());
 			}
 		}
 
-		public void OnJump(InputValue value)
+		public void OnJump(InputAction.CallbackContext context)
 		{
-			JumpInput(value.isPressed);
+			JumpInput(context.performed);
 		}
 
-		public void OnSprint(InputValue value)
+		public void OnSprint(InputAction.CallbackContext context)
 		{
-			SprintInput(value.isPressed);
+			SprintInput(context.performed);
+		}
+
+		public void OnDig(InputAction.CallbackContext context)
+		{
+			// Debug.LogError("HAYRI : " + context.duration);
+			// DigInput(context.performed);
+		}
+
+		public void OnBuild(InputAction.CallbackContext context)
+		{
+			BuildInput(context.performed);
 		}
 #endif
 
@@ -64,6 +100,16 @@ namespace StarterAssets
 		public void SprintInput(bool newSprintState)
 		{
 			sprint = newSprintState;
+		}
+		
+		private void DigInput(bool newDigState)
+		{
+			dig = newDigState;
+		}
+
+		private void BuildInput(bool newBuildState)
+		{
+			build = newBuildState;
 		}
 		
 		private void OnApplicationFocus(bool hasFocus)

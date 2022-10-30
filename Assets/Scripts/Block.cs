@@ -57,4 +57,5 @@ public enum BlockType
     Sand,
     Air,
     WorldBottom,
+    Diamond
 }

@@ -71,7 +71,8 @@ namespace StarterAssets
 		private CharacterController _controller;
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
-
+		private WorldCreator _world;
+		
 		private const float _threshold = 0.01f;
 
 		private bool IsCurrentDeviceMouse
@@ -99,6 +100,7 @@ namespace StarterAssets
 		{
 			_controller = GetComponent<CharacterController>();
 			_input = GetComponent<StarterAssetsInputs>();
+			_world = FindObjectOfType<WorldCreator>();
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 			_playerInput = GetComponent<PlayerInput>();
 #else
@@ -115,6 +117,21 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			DigOrBuild();
+		}
+
+		private void DigOrBuild()
+		{
+			if (_input.dig)
+			{
+				_input.dig = false;
+				_world.Dig();
+			}
+			else if (_input.build)
+			{
+				_input.build = false;
+				_world.Build();
+			}
 		}
 
 		private void LateUpdate()

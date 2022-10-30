@@ -101,4 +101,16 @@ public static class MeshUtils
         
         return total;
     }
+
+    public static float FractalBrownianMotion3D(float x, float y, float z, LayerParams layerParams)
+    {
+        float xy = FractalBrownianMotion(x, y, layerParams);
+        float xz = FractalBrownianMotion(x, z, layerParams);
+        float yz = FractalBrownianMotion(y, z, layerParams);
+        float yx = FractalBrownianMotion(y, x, layerParams);
+        float zx = FractalBrownianMotion(z, x, layerParams);
+        float zy = FractalBrownianMotion(z, y, layerParams);
+
+        return (xy + xz + yz + yx + zx + zy) / 6f;
+    }
 }
