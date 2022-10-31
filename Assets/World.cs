@@ -78,7 +78,7 @@ public class World : MonoBehaviour
         {
             Vector3Int hitBlock = Vector3Int.RoundToInt(hit.point + hit.normal / 2f);
             
-            Debug.LogError("HAYRI HIT POINT " + hitBlock);
+            // Debug.LogError("HAYRI HIT POINT " + hitBlock);
 
             Collider[] colliders = new Collider[1];
             
@@ -116,8 +116,26 @@ public class World : MonoBehaviour
             Vector3Int chunkCoords = new Vector3Int(chunkX, chunkY, chunkZ);
             
             Debug.LogError("HAYRI CHUNK : " + chunkCoords);
-
-            Chunk chunk = _chunks[chunkCoords];
+            Chunk chunk;
+            if (!_chunkCoordinates.Contains(chunkCoords))
+            {
+                _chunkCoordinates.Add(chunkCoords);
+                GameObject chunkObj = new GameObject($"Chunk_{chunkCoords.x}_{chunkCoords.y}_{chunkCoords.z}");
+                chunkObj.transform.position = chunkCoords;
+                chunkObj.transform.SetParent(chunksParent);
+                chunk = chunkObj.AddComponent<Chunk>();
+                BlockType[] blockTypes = new BlockType[chunkSize.x * chunkSize.y * chunkSize.z];
+                for (int i = 0; i < blockTypes.Length; i++)
+                {
+                    blockTypes[i] = BlockType.Air;
+                }
+                chunk.Init(chunkSize, atlasMat, blockTypes);
+                
+                chunk.GenerateChunk(false);
+                _chunks.TryAdd(chunkCoords, chunk);
+                _chunks[chunkCoords].ShowChunk(true);
+            }
+            chunk = _chunks[chunkCoords];
 
             hitBlock.x %= chunkSize.x;
             hitBlock.y %= chunkSize.y;
