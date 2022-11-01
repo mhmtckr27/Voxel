@@ -114,11 +114,35 @@ namespace StarterAssets
 
 		private void Update()
 		{
-			JumpAndGravity();
-			GroundedCheck();
-			Move();
-			DigOrBuild();
-			Save();
+			if (!UIController.IsGamePaused)
+			{
+				JumpAndGravity();
+				GroundedCheck();
+				Move();
+				DigOrBuild();
+				Save();
+				SelectBlock();
+			}
+
+			Pause();
+		}
+
+		private void SelectBlock()
+		{
+			if (_input.selectBlock)
+			{
+				_input.selectBlock = false;
+				FindObjectOfType<UIController>().SelectBlock(_input.selectedBlock);
+			}
+		}
+
+		private void Pause()
+		{
+			if (_input.pause)
+			{
+				_input.pause = false;
+				FindObjectOfType<UIController>(true).OpenMenu();
+			}
 		}
 
 		private void Save()

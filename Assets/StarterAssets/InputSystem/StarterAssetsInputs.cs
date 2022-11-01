@@ -16,6 +16,9 @@ namespace StarterAssets
 		public bool dig;
 		public bool build;
 		public bool save;
+		public bool pause;
+		public bool selectBlock;
+		public int selectedBlock;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -25,27 +28,7 @@ namespace StarterAssets
 		public bool cursorInputForLook = true;
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
-
-
-		private void Awake()
-		{
-			// Let's create a button action bound to the A button
-			// on the gamepad.
-			var action = new InputAction(
-				type: InputActionType.Button,
-				binding: "<Mouse>/leftButton");
-
-// When the action is performed (which will happen when the
-// button is pressed and then released) we take the duration
-// of the press to determine how many projectiles to spawn.
-			action.performed +=
-				context =>
-				{
-					Debug.LogError("HAYRI "  + context.duration);
-					DigInput(context.duration > 3f);
-				};
-
-		}
+		
 
 		public void OnMove(InputAction.CallbackContext context)
 		{
@@ -83,6 +66,16 @@ namespace StarterAssets
 		public void OnSave(InputAction.CallbackContext context)
 		{
 			SaveInput(context.ReadValueAsButton());
+		}
+		
+		public void OnPause(InputAction.CallbackContext context)
+		{
+			PauseInput(context.ReadValueAsButton());
+		}
+
+		public void OnSelectBlock(InputAction.CallbackContext context)
+		{
+			SelectBlockInput(context.ReadValueAsButton(), int.Parse(context.control.name));
 		}
 #endif
 
@@ -122,9 +115,20 @@ namespace StarterAssets
 			save = newSaveState;
 		}
 		
+		private void PauseInput(bool newPauseState)
+		{
+			pause = newPauseState;
+		}
+
+		private void SelectBlockInput(bool newSelectState, int selectedBlock)
+		{
+			selectBlock = newSelectState;
+			this.selectedBlock = selectedBlock;
+		}
+		
 		private void OnApplicationFocus(bool hasFocus)
 		{
-			SetCursorState(cursorLocked);
+			SetCursorState(cursorLocked && FindObjectOfType<UIController>().menu.activeSelf);
 		}
 
 		private void SetCursorState(bool newState)

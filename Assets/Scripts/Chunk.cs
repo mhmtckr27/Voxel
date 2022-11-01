@@ -60,9 +60,13 @@ public class Chunk : MonoBehaviour
 
         var randomGenerators = new Unity.Mathematics.Random[ChunkSizeTotal];
 
+        uint randomSeed = (uint) Time.time;
+        if (randomSeed == 0)
+            randomSeed++;
+        
         for (int i = 0; i < ChunkSizeTotal; i++)
         {
-            randomGenerators[i] = new Unity.Mathematics.Random((uint) Time.time);
+            randomGenerators[i] = new Unity.Mathematics.Random(randomSeed);
         }
 
         var _randomGenerators = new NativeArray<Unity.Mathematics.Random>(randomGenerators, Allocator.Persistent);
@@ -74,7 +78,7 @@ public class Chunk : MonoBehaviour
             ChunkSize = chunkSize,
             Location = transform.position,
             RandomGenerators = _randomGenerators,
-            RandomGenerator = new Unity.Mathematics.Random((uint) Time.time)
+            RandomGenerator = new Unity.Mathematics.Random(randomSeed)
         };
 
         _populateBlockTypesJobHandle = _populateBlockTypesJob.Schedule(ChunkSizeTotal, 64);
@@ -253,8 +257,11 @@ public class Chunk : MonoBehaviour
         int blockIndex = FromCoordinates(blockCoord);
         // _blockTypes[blockIndex] = BlockType.Air;
         _damageLevels[blockIndex]++;
-        if (_damageLevels[blockIndex] == 10)
+        if (_damageLevels[blockIndex] == 3)
+        {
             _blockTypes[blockIndex] = BlockType.Air;
+            _damageLevels[blockIndex] = 0;
+        }
         DestroyImmediate(_meshRenderer);
         DestroyImmediate(_meshFilter);
         DestroyImmediate(_meshCollider);
@@ -264,7 +271,7 @@ public class Chunk : MonoBehaviour
     public void Build(Vector3Int buildCoord)
     {
         int buildIndex = FromCoordinates(buildCoord);
-        _blockTypes[buildIndex] = BlockType.Dirt;
+        _blockTypes[buildIndex] = FindObjectOfType<UIController>().selectedBlock;
         DestroyImmediate(_meshRenderer);
         DestroyImmediate(_meshFilter);
         DestroyImmediate(_meshCollider);

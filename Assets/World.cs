@@ -19,6 +19,7 @@ public class World : MonoBehaviour
     [SerializeField] private Slider loadingBar;
     [SerializeField] private GameObject mainWorldCamera;
     [SerializeField] private GameObject player;
+    [SerializeField] private GameObject playerCamera;
     [SerializeField] private LayerMask playerLayer;
     [ShowInInspector] public static Dictionary<BlockType, BlockData> BlockDatas;
 
@@ -42,8 +43,6 @@ public class World : MonoBehaviour
     private Queue<IEnumerator> generateWorldQueue = new();
 
     public bool loadFromFile = true;
-
-    
     
     private void Update()
     {
@@ -115,7 +114,7 @@ public class World : MonoBehaviour
             
             Vector3Int chunkCoords = new Vector3Int(chunkX, chunkY, chunkZ);
             
-            Debug.LogError("HAYRI CHUNK : " + chunkCoords);
+            // Debug.LogError("HAYRI CHUNK : " + chunkCoords);
             Chunk chunk;
             if (!_chunkCoordinates.Contains(chunkCoords))
             {
@@ -149,7 +148,7 @@ public class World : MonoBehaviour
                 hitBlock.z += chunkSize.z;
             
             
-            Debug.LogError("HAYRI HIT POINT RELATIVE" + hitBlock);
+            // Debug.LogError("HAYRI HIT POINT RELATIVE" + hitBlock);
             
             chunk.Build(hitBlock);
         }
@@ -216,22 +215,26 @@ public class World : MonoBehaviour
     }
     
     [Button]
-    private void GenerateWorld()
+    public void GenerateWorld(string saveFileName = "")
     {
+        FindObjectOfType<UIController>(true).cursor.SetActive(false);
         DeleteExistingChunks();
         RefreshBlockDatas();
         WorldLayer[] layers = GetComponentsInChildren<WorldLayer>();
-        Layers = layers.Where(x => !x.layerParams.worldLayerTag.Contains("Cave")).OrderBy(x => x.layerParams.yOffset).ToList();
+        Layers = layers.Where(x => !x.layerParams.worldLayerTag.Contains("Cave")).OrderByDescending(x => x.transform.GetSiblingIndex()).ToList();
         CaveGrapher = FindObjectOfType<PerlinGrapher3D>();
         // CaveLayer = layers.First(x => x.layerParams.worldLayerTag.Contains("Cave"));
         player.SetActive(false);
         mainWorldCamera.SetActive(true);
+        playerCamera.SetActive(false);
         loadingBar.maxValue = chunkCount.x * chunkCount.z;
         loadingBar.value = 0;
         if(loadFromFile)
-            StartCoroutine(LoadWorld());
+            StartCoroutine(LoadWorld(saveFileName));
         else
             StartCoroutine(GenerateWorldRoutine());
+
+        WorldSaver.GetAllSaveFiles();
     }
 
     IEnumerator GenerateWorldExtensionRoutine()
@@ -285,7 +288,10 @@ public class World : MonoBehaviour
         if(Application.isPlaying)
         {
             mainWorldCamera.SetActive(false);
+            playerCamera.SetActive(true);
             player.SetActive(true);
+            FindObjectOfType<UIController>(true).cursor.SetActive(true);
+            FindObjectOfType<UIController>(true).SelectBlock(1);
         }
 
         StartCoroutine(UpdateWorldIterator());
@@ -400,9 +406,9 @@ public class World : MonoBehaviour
         }
     }
 
-    public IEnumerator LoadWorld()
+    public IEnumerator LoadWorld(string saveFileName)
     {
-        WorldSaveData worldSaveData = WorldSaver.Load("World_2022_10_30___22_58_26.dat");
+        WorldSaveData worldSaveData = WorldSaver.Load($"{saveFileName}.dat");
 
         if (worldSaveData == null)
             yield break;
@@ -443,7 +449,10 @@ public class World : MonoBehaviour
         if(Application.isPlaying)
         {
             mainWorldCamera.SetActive(false);
+            playerCamera.SetActive(true);
             player.SetActive(true);
+            FindObjectOfType<UIController>(true).cursor.SetActive(true);
+            FindObjectOfType<UIController>(true).SelectBlock(1);
         }
     }
 

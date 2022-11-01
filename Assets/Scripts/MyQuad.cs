@@ -41,10 +41,10 @@ public class MyQuad
         
         uvs2 = new[]
         {
-            new Vector2((damageLevel + 1) * 0.0625f, 0.0625f),
-            new Vector2(damageLevel * 0.0625f, 0.0625f),
-            new Vector2(damageLevel * 0.0625f, 0),
-            new Vector2((damageLevel + 1) * 0.0625f, 0),
+            new Vector2((damageLevel+ 1) * 0.0625f, 0.0625f),
+            new Vector2(damageLevel  * 0.0625f, 0.0625f),
+            new Vector2(damageLevel  * 0.0625f, 0),
+            new Vector2((damageLevel  + 1) * 0.0625f, 0),
         };
 
         Vector3 v0 = new Vector3(-0.5f, -0.5f, 0.5f) + position;

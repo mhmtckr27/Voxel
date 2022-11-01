@@ -73,11 +73,18 @@ public static class WorldSaver
     public static WorldSaveData WorldSaveData;
     static string savePath = $"{Application.persistentDataPath}/Saves";
     
-    public static void Save(World world)
+    public static void Save(World world, string saveFileName = "")
     {
         DateTime now = DateTime.Now;
-        string dateStr = $"{now.Year}_{now.Month}_{now.Day}___{now.Hour}_{now.Minute}_{now.Second}";
-        string saveFileName = $"{savePath}/World_{dateStr}.dat";
+        if (string.IsNullOrEmpty(saveFileName))
+        {
+            string dateStr = $"{now.Year}_{now.Month}_{now.Day}___{now.Hour}_{now.Minute}_{now.Second}";
+            saveFileName = $"{savePath}/World_{dateStr}.dat";
+        }
+        else
+        {
+            saveFileName = $"{savePath}/{saveFileName}.dat";
+        }
 
         if (!File.Exists(savePath))
             Directory.CreateDirectory(savePath);
@@ -97,7 +104,7 @@ public static class WorldSaver
         string filePathFull = $"{savePath}/{fileName}";
         if (!File.Exists(filePathFull))
         {
-            Debug.LogError("SaveFile does not exist.");
+            Debug.LogError("SaveFile does not exist. : " + filePathFull);
             return null;
         }
 
@@ -105,6 +112,12 @@ public static class WorldSaver
         FileStream file = File.Open(filePathFull, FileMode.Open, FileAccess.Read);
         WorldSaveData = (WorldSaveData) binaryFormatter.Deserialize(file);
         return WorldSaveData;
+    }
+
+    public static List<string> GetAllSaveFiles()
+    {
+        DirectoryInfo saveDirectory = new DirectoryInfo(savePath);
+        return saveDirectory.GetFiles("*.dat").Select(x => x.Name.Split(".dat")[0]).ToList();
     }
 }
 
