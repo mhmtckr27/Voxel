@@ -30,7 +30,7 @@ public class Chunk : MonoBehaviour
     // z = index / (chunkSizeX * chunkSizeZ)
     
     [ShowInInspector] private BlockType[] _blockTypes;
-    private int[] _damageLevels;
+    private float[] _blockHealths;
     private PopulateBlockTypesJob _populateBlockTypesJob;
     
     private JobHandle _populateBlockTypesJobHandle;
@@ -42,7 +42,7 @@ public class Chunk : MonoBehaviour
         this.chunkSize = chunkSize;
         this.atlasMat = atlasMat;
         this._blockTypes = blockTypes;
-        _damageLevels = new int[ChunkSizeTotal];
+        _blockHealths = new float[ChunkSizeTotal];
     }
 
     public void ShowChunk(bool show)
@@ -53,10 +53,10 @@ public class Chunk : MonoBehaviour
     private void PopulateBlockTypesArray()
     {
         _blockTypes = new BlockType[ChunkSizeTotal];
-        _damageLevels = new int[ChunkSizeTotal];
+        _blockHealths = new float[ChunkSizeTotal];
 
         NativeArray<BlockType> blockTypes = new NativeArray<BlockType>(_blockTypes, Allocator.Persistent);
-        NativeArray<int> damageLevels = new NativeArray<int>(_damageLevels, Allocator.Persistent);
+        NativeArray<float> damageLevels = new NativeArray<float>(_blockHealths, Allocator.Persistent);
 
         var randomGenerators = new Unity.Mathematics.Random[ChunkSizeTotal];
 
@@ -74,7 +74,7 @@ public class Chunk : MonoBehaviour
         _populateBlockTypesJob = new PopulateBlockTypesJob()
         {
             BlockTypes = blockTypes,
-            DamageLevels = damageLevels,
+            BlockHealths = damageLevels,
             ChunkSize = chunkSize,
             Location = transform.position,
             RandomGenerators = _randomGenerators,
@@ -85,7 +85,7 @@ public class Chunk : MonoBehaviour
         _populateBlockTypesJobHandle.Complete();
 
         _populateBlockTypesJob.BlockTypes.CopyTo(_blockTypes);
-        _populateBlockTypesJob.DamageLevels.CopyTo(_damageLevels);
+        _populateBlockTypesJob.BlockHealths.CopyTo(_blockHealths);
         
         
         blockTypes.Dispose();
@@ -122,9 +122,10 @@ public class Chunk : MonoBehaviour
             {
                 for (int z = 0; z < chunkSize.z; z++)
                 {
-                    BlockType blockType = GetBlockDataFrom(new Vector3Int(x, y, z));
-                    int damageLevel = _damageLevels[FromCoordinates(new Vector3Int(x, y, z))];
-                    _blocks[x, y, z] = new Block(World.BlockDatas[blockType], new Vector3Int(x, y, z), this, damageLevel);
+                    BlockType blockType = GetBlockTypeFrom(new Vector3Int(x, y, z));
+                    float blockHealth = _blockHealths[FromCoordinates(new Vector3Int(x, y, z))];
+                    // damageLevel = FromCoordinates(new Vector3Int(x, y, z)) % 11;
+                    _blocks[x, y, z] = new Block(World.BlockDatas[blockType], new Vector3Int(x, y, z), this, blockHealth);
                     if (_blocks[x, y, z].Mesh != null)
                     {
                         inputMeshes.Add(_blocks[x, y, z].Mesh);
@@ -195,22 +196,22 @@ public class Chunk : MonoBehaviour
         switch (quadSide)
         {
             case QuadSide.Front:
-                neighbourType = GetBlockDataFrom(new Vector3Int(coords.x,  coords.y, coords.z + 1));
+                neighbourType = GetBlockTypeFrom(new Vector3Int(coords.x,  coords.y, coords.z + 1));
                 break;
             case QuadSide.Back:
-                neighbourType = GetBlockDataFrom(new Vector3Int(coords.x, coords.y, coords.z - 1));
+                neighbourType = GetBlockTypeFrom(new Vector3Int(coords.x, coords.y, coords.z - 1));
                 break;
             case QuadSide.Left:
-                neighbourType = GetBlockDataFrom(new Vector3Int(coords.x + 1, coords.y, coords.z));
+                neighbourType = GetBlockTypeFrom(new Vector3Int(coords.x + 1, coords.y, coords.z));
                 break;
             case QuadSide.Right:
-                neighbourType = GetBlockDataFrom(new Vector3Int(coords.x - 1, coords.y, coords.z));
+                neighbourType = GetBlockTypeFrom(new Vector3Int(coords.x - 1, coords.y, coords.z));
                 break;
             case QuadSide.Top:
-                neighbourType = GetBlockDataFrom(new Vector3Int(coords.x, coords.y + 1, coords.z));
+                neighbourType = GetBlockTypeFrom(new Vector3Int(coords.x, coords.y + 1, coords.z));
                 break;
             case QuadSide.Bottom:
-                neighbourType = GetBlockDataFrom(new Vector3Int(coords.x, coords.y - 1, coords.z));
+                neighbourType = GetBlockTypeFrom(new Vector3Int(coords.x, coords.y - 1, coords.z));
                 break;
             default:
                 break;
@@ -236,7 +237,7 @@ public class Chunk : MonoBehaviour
     }
     
 
-    private BlockType GetBlockDataFrom(Vector3Int coords)
+    private BlockType GetBlockTypeFrom(Vector3Int coords)
     {
         /* Flat[x + chunkSizeX * (y + chunkSizeY * z)] = Original[x, y, z] */
         // x = index % chunkSizeX
@@ -251,16 +252,36 @@ public class Chunk : MonoBehaviour
         
         return _blockTypes[index];
     }
+
+    private BlockData GetBlockDataFrom(Vector3Int coords)
+    {
+        /* Flat[x + chunkSizeX * (y + chunkSizeY * z)] = Original[x, y, z] */
+        // x = index % chunkSizeX
+        // y = (index / chunkSizeX) % chunkSizeZ
+        // z = index / (chunkSizeX * chunkSizeZ)
+
+        if (coords.x < 0 || coords.x > chunkSize.x - 1 ||
+            coords.y < 0 || coords.y > chunkSize.y - 1 ||
+            coords.z < 0 || coords.z > chunkSize.z - 1)
+            return null;
+
+        return _blocks[coords.x, coords.y, coords.z].BlockData;
+    }
     
-    public void Dig(Vector3Int blockCoord)
+    public void Dig(Vector3Int blockCoord, float damageAmount)
     {
         int blockIndex = FromCoordinates(blockCoord);
-        // _blockTypes[blockIndex] = BlockType.Air;
-        _damageLevels[blockIndex]++;
-        if (_damageLevels[blockIndex] == 3)
+        
+        if(_blockTypes[blockIndex] == BlockType.WorldBottom)
+            return;
+
+        BlockData blockData = GetBlockDataFrom(blockCoord);
+        
+        _blockHealths[blockIndex] -= damageAmount * blockData.blockDurability;
+        if (_blockHealths[blockIndex] <= 0)
         {
             _blockTypes[blockIndex] = BlockType.Air;
-            _damageLevels[blockIndex] = 0;
+            _blockHealths[blockIndex] = 100;
         }
         DestroyImmediate(_meshRenderer);
         DestroyImmediate(_meshFilter);
@@ -350,7 +371,7 @@ public class Chunk : MonoBehaviour
     struct PopulateBlockTypesJob : IJobParallelFor
     {
         public NativeArray<BlockType> BlockTypes;
-        public NativeArray<int> DamageLevels;
+        public NativeArray<float> BlockHealths;
         public Vector3Int ChunkSize;
         public Vector3 Location;
         public NativeArray<Unity.Mathematics.Random> RandomGenerators;
@@ -376,7 +397,7 @@ public class Chunk : MonoBehaviour
             float yCave = MeshUtils.FractalBrownianMotion3D(coordX, coordY, coordZ, World.CaveGrapher.layerParams);
             // Debug.LogError("HAYRIII " + yCave);
 
-            DamageLevels[i] = 0;
+            BlockHealths[i] = 100;
             
             if (coordY == 0)
             {

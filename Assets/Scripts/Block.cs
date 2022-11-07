@@ -10,8 +10,10 @@ public class Block
     private BlockData _blockData;
     public Mesh Mesh;
     private Chunk _parentChunk;
+
+    public BlockData BlockData => _blockData;
     
-    public Block(BlockData blockData, Vector3Int position, Chunk parentChunk, int damageLevel)
+    public Block(BlockData blockData, Vector3Int position, Chunk parentChunk, float blockHealth)
     {
         _blockData = blockData;
         _parentChunk = parentChunk;
@@ -26,7 +28,7 @@ public class Block
         {
             QuadSide quadSide = (QuadSide)quadSideArray.GetValue(i);
             if(!_parentChunk.HasNeighbour(position, quadSide))
-                myQuads.Add(new MyQuad(quadSide, _blockData.GetUV(quadSide), position, damageLevel));
+                myQuads.Add(new MyQuad(quadSide, _blockData.GetUV(quadSide), position, blockHealth));
         }
         
         if(myQuads.Count == 0)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine;
 public class MyQuad
 {
     public Mesh mesh;
-    public MyQuad(QuadSide quadSide, Vector2Int uv, Vector3 position, int damageLevel)
+    public MyQuad(QuadSide quadSide, Vector2Int uv, Vector3 position, float blockHealth)
     {
         mesh = new Mesh
         {
@@ -36,15 +37,34 @@ public class MyQuad
             uv10
         };
 
-        if (damageLevel == 0)
-            damageLevel = 11;
+        int damageTextureIndex = 1;
+
+        if (Math.Abs(blockHealth - 100) < 0.001f)
+            damageTextureIndex = 12;
+        else if (blockHealth > 87.5f)
+            damageTextureIndex = 1;
+        else if (blockHealth > 75f)
+            damageTextureIndex = 2;
+        else if (blockHealth > 62.5f)
+            damageTextureIndex = 3;
+        else if (blockHealth > 50f)
+            damageTextureIndex = 4;
+        else if (blockHealth > 37.5f)
+            damageTextureIndex = 5;
+        else if (blockHealth > 25f)
+            damageTextureIndex = 6;
+        else if (blockHealth > 12.5f)
+            damageTextureIndex = 7;
+        else
+            damageTextureIndex = 8;
         
+
         uvs2 = new[]
         {
-            new Vector2((damageLevel+ 1) * 0.0625f, 0.0625f),
-            new Vector2(damageLevel  * 0.0625f, 0.0625f),
-            new Vector2(damageLevel  * 0.0625f, 0),
-            new Vector2((damageLevel  + 1) * 0.0625f, 0),
+            new Vector2(damageTextureIndex * 0.0625f, 0.0625f),
+            new Vector2((damageTextureIndex - 1) * 0.0625f, 0.0625f),
+            new Vector2((damageTextureIndex - 1)  * 0.0625f, 0),
+            new Vector2(damageTextureIndex * 0.0625f, 0),
         };
 
         Vector3 v0 = new Vector3(-0.5f, -0.5f, 0.5f) + position;
@@ -99,8 +119,7 @@ public class MyQuad
 
         mesh.vertices = vertices;
         mesh.uv = uvs;
-        if(damageLevel > 0)
-            mesh.SetUVs(1, uvs2);
+        mesh.SetUVs(1, uvs2);
         mesh.normals = normals;
         mesh.triangles = triangles;
         

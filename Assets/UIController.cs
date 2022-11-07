@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
+// using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
@@ -24,20 +24,18 @@ public class UIController : MonoBehaviour
     
     List<string> saveFiles;
 
-    public static bool IsGamePaused = false;
-
     public List<BlockType> blockDatas;
 
     public BlockType selectedBlock;
 
     public void OnContinueButton()
     {
-        OpenMenu();
+        OpenMenu(false);
     }
 
     public void OnNewGameButton()
     {
-        OpenMenu();
+        OpenMenu(false);
         loadingBar.SetActive(true);
         FindObjectOfType<World>().loadFromFile = false;
         FindObjectOfType<World>().GenerateWorld();
@@ -109,7 +107,7 @@ public class UIController : MonoBehaviour
     public void OnLoadConfirmButton()
     {        
         OnCancelLoadButton();
-        OpenMenu();
+        OpenMenu(false);
         loadingBar.SetActive(true);
         FindObjectOfType<World>().loadFromFile = true;
         FindObjectOfType<World>().GenerateWorld(saveFileName.text);
@@ -150,13 +148,12 @@ public class UIController : MonoBehaviour
         loadConfirmButton.interactable = !string.IsNullOrEmpty(saveFileName.text);
     }
 
-    public void OpenMenu()
+    public void OpenMenu(bool open)
     {
-        menuButtons.SetActive(!menuButtons.activeSelf);
-        menu.SetActive(!menu.activeSelf);
-        Cursor.visible = menu.activeSelf;
-        Cursor.lockState = menu.activeSelf ? CursorLockMode.None : CursorLockMode.Locked;
-        IsGamePaused = menu.activeSelf;
+        menuButtons.SetActive(open);
+        menu.SetActive(open);
+        Cursor.visible = open;
+        Cursor.lockState = open ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     public void SelectBlock(int selectedBlock)

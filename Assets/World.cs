@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.InputSystem;
+// using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -50,10 +50,10 @@ public class World : MonoBehaviour
             DrawBox(drawHitBlock, Quaternion.identity, new Vector3(1f, 1f, 1f), Color.black);
     }
 
-    public void Dig()
+    public void Dig(float damageAmount)
     {
         RaycastHit hit;
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out hit, 10))
         {
@@ -61,7 +61,7 @@ public class World : MonoBehaviour
             // Debug.LogError(hitBlock);
             // Debug.LogError(hitBlock);
             Chunk chunk = hit.collider.GetComponent<Chunk>();
-            chunk.Dig(new Vector3Int(hitBlock.x % chunkSize.x, hitBlock.y % chunkSize.y, hitBlock.z % chunkSize.z));
+            chunk.Dig(new Vector3Int(hitBlock.x % chunkSize.x, hitBlock.y % chunkSize.y, hitBlock.z % chunkSize.z), damageAmount);
         }
     }
 
@@ -71,7 +71,7 @@ public class World : MonoBehaviour
     public void Build()
     {
         RaycastHit hit;
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out hit, 10))
         {

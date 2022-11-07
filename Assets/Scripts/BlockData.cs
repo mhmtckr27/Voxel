@@ -19,6 +19,17 @@ public class BlockData : ScriptableObject
     public Vector2Int topUV;
     public Vector2Int bottomUV;
 
+    /// <summary>
+    /// How much damage does this block takes from a single hit is determined by durability.
+    /// When durability is higher, more hits required to dig this block. Different from block health which is
+    /// 100 by default for all blocks.
+    /// </summary>
+    [Tooltip("How much damage does this block takes from a single hit is determined by durability. " +
+             "When durability is lower, more hits required to dig this block. (damageDoneToBlock = damagePerSecond * blockDurability)  " +
+             "Different from block health which is 100 by default for all blocks.")] 
+    [Range(0, 1f)]
+    public float blockDurability;
+
     public Vector2Int GetUV(QuadSide quadSide)
     {
         Vector2Int uvToReturn = Vector2Int.zero;

@@ -19,3 +19,4 @@ MonoBehaviour:
   rightUV: {x: 0, y: 14}
   topUV: {x: 0, y: 14}
   bottomUV: {x: 0, y: 14}
+  blockDurability: 0.5
