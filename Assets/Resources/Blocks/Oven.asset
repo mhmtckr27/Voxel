@@ -9,11 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: OdinModuleConfig
+  m_Script: {fileID: 11500000, guid: b662b9fb4ccfe344698933ab350ec662, type: 3}
+  m_Name: Oven
   m_EditorClassIdentifier: 
-  configurations:
-  - ID: Unity.Mathematics
-    ActivationSettings: 0
-  ModuleTogglingSettings: 2
-  ModuleUpdateSettings: 0
+  blockType: 13
+  canDrop: 0
+  frontUV: {x: 12, y: 13}
+  backUV: {x: 14, y: 13}
+  leftUV: {x: 13, y: 13}
+  rightUV: {x: 13, y: 13}
+  topUV: {x: 14, y: 12}
+  bottomUV: {x: 14, y: 12}
+  blockDurability: 1

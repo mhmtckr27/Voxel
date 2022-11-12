@@ -62,5 +62,10 @@ public enum BlockType
     Diamond,
     Brick,
     Wood,
-    Snow
+    Snow,
+    Chest,
+    Workbench,
+    Oven,
+    Glass
+    
 }

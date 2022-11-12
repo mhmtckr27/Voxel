@@ -695,7 +695,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: T_UI_Blocks_27
+      name: T_UI_Blocks_Chest
       rect:
         serializedVersion: 2
         x: 880
@@ -1031,7 +1031,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: T_UI_Blocks_43
+      name: T_UI_Blocks_Workbench
       rect:
         serializedVersion: 2
         x: 880
@@ -1052,7 +1052,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: T_UI_Blocks_44
+      name: T_UI_Blocks_Oven
       rect:
         serializedVersion: 2
         x: 960
@@ -1157,7 +1157,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: T_UI_Blocks_49
+      name: T_UI_Blocks_Glass
       rect:
         serializedVersion: 2
         x: 80
@@ -1598,7 +1598,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: T_UI_Blocks_70
+      name: T_UI_Blocks_
       rect:
         serializedVersion: 2
         x: 480
@@ -5534,7 +5534,6 @@ TextureImporter:
       T_UI_Blocks_31: -1826122222
       T_UI_Blocks_241: -220768701
       T_UI_Blocks_116: 964013318
-      T_UI_Blocks_49: 1916831203
       T_UI_Blocks_206: -1534181695
       T_UI_Blocks_219: 1730765468
       T_UI_Blocks_75: 184860579
@@ -5645,6 +5644,7 @@ TextureImporter:
       T_UI_Blocks_32: 1517146187
       T_UI_Blocks_151: -1204372585
       T_UI_Blocks_229: -1788710434
+      T_UI_Blocks_: 1220007183
       T_UI_Blocks_122: -1771548721
       T_UI_Blocks_53: 1359477239
       T_UI_Blocks_26: 1813342297
@@ -5654,10 +5654,10 @@ TextureImporter:
       T_UI_Blocks_37: -1880485974
       T_UI_Blocks_158: -901232344
       T_UI_Blocks_183: 86917357
+      T_UI_Blocks_Oven: 1108187280
       T_UI_Blocks_205: -271182135
       T_UI_Blocks_180: 1831050723
       T_UI_Blocks_108: 178839833
-      T_UI_Blocks_27: 1427399344
       T_UI_Blocks_28: -1849357491
       T_UI_Blocks_125: -1326403255
       T_UI_Blocks_105: -1058863664
@@ -5693,7 +5693,6 @@ TextureImporter:
       T_UI_Blocks_25: -456330824
       T_UI_Blocks_168: 169916871
       T_UI_Blocks_113: -1453858117
-      T_UI_Blocks_43: 1579373039
       T_UI_Blocks_102: -2125378918
       T_UI_Blocks_233: -272900873
       T_UI_Blocks_107: -2070001001
@@ -5718,6 +5717,7 @@ TextureImporter:
       T_UI_Blocks_150: -412073894
       T_UI_Blocks_189: 1990185124
       T_UI_Blocks_200: -1469467747
+      T_UI_Blocks_Workbench: 1579373039
       T_UI_Blocks_97: 1907578262
       T_UI_Blocks_67: -1343134450
       T_UI_Blocks_136: 1757376957
@@ -5742,7 +5742,6 @@ TextureImporter:
       T_UI_Blocks_78: 52649128
       T_UI_Blocks_179: -1359144660
       T_UI_Blocks_144: -1561717703
-      T_UI_Blocks_44: 1108187280
       T_UI_Blocks_54: -1360581311
       T_UI_Blocks_106: 259997596
       T_UI_Blocks_35: -2104522108
@@ -5753,9 +5752,9 @@ TextureImporter:
       T_UI_Blocks_146: -13522708
       T_UI_Blocks_148: 1217191578
       T_UI_Blocks_162: -2051751576
+      T_UI_Blocks_Chest: 1427399344
       T_UI_Blocks_187: 1656169859
       Grass: -292854424
-      T_UI_Blocks_70: 1220007183
       T_UI_Blocks_137: 1013216807
       T_UI_Blocks_169: 1666212645
       Wood: -1595311313
@@ -5767,6 +5766,7 @@ TextureImporter:
       T_UI_Blocks_86: 1627762775
       T_UI_Blocks_110: -1510112304
       T_UI_Blocks_210: -121117543
+      T_UI_Blocks_Glass: 1916831203
       T_UI_Blocks_174: -987864512
       T_UI_Blocks_222: 1061503881
       T_UI_Blocks_216: -1751456497

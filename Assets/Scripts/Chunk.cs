@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -29,7 +28,7 @@ public class Chunk : MonoBehaviour
     // y = (index / chunkSizeX) % chunkSizeZ
     // z = index / (chunkSizeX * chunkSizeZ)
     
-    [ShowInInspector] private BlockType[] _blockTypes;
+    private BlockType[] _blockTypes;
     private float[] _blockHealths;
     private PopulateBlockTypesJob _populateBlockTypesJob;
     
@@ -43,6 +42,10 @@ public class Chunk : MonoBehaviour
         this.atlasMat = atlasMat;
         this._blockTypes = blockTypes;
         _blockHealths = new float[ChunkSizeTotal];
+        for (int i = 0; i < _blockHealths.Length; i++)
+        {
+            _blockHealths[i] = 100;
+        }
     }
 
     public void ShowChunk(bool show)
@@ -93,7 +96,7 @@ public class Chunk : MonoBehaviour
         _randomGenerators.Dispose();
     }
 
-    [Button]
+    // [Button]
     public void GenerateChunk(bool populateBlockTypesArray = true)
     {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
@@ -283,16 +286,18 @@ public class Chunk : MonoBehaviour
             _blockTypes[blockIndex] = BlockType.Air;
             _blockHealths[blockIndex] = 100;
         }
-        DestroyImmediate(_meshRenderer);
-        DestroyImmediate(_meshFilter);
-        DestroyImmediate(_meshCollider);
-        GenerateChunk(false);
+        RegenerateChunk();
     }
 
     public void Build(Vector3Int buildCoord)
     {
         int buildIndex = FromCoordinates(buildCoord);
         _blockTypes[buildIndex] = FindObjectOfType<UIController>().selectedBlock;
+        RegenerateChunk();
+    }
+
+    private void RegenerateChunk()
+    {
         DestroyImmediate(_meshRenderer);
         DestroyImmediate(_meshFilter);
         DestroyImmediate(_meshCollider);
@@ -475,5 +480,12 @@ public class Chunk : MonoBehaviour
         
             return toReturn;
         }
+    }
+
+    public void ResetBlockHealth(Vector3Int blockCoordsLocal)
+    {
+        int index = FromCoordinates(blockCoordsLocal);
+        _blockHealths[index] = 100;
+        RegenerateChunk();
     }
 }

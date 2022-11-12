@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -11,6 +10,7 @@ using UnityEngine.Serialization;
 public class BlockData : ScriptableObject
 {
     public BlockType blockType;
+    public bool canDrop;
 
     public Vector2Int frontUV;
     public Vector2Int backUV;

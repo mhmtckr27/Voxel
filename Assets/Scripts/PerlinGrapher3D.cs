@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class PerlinGrapher3D : MonoBehaviour
@@ -32,7 +31,6 @@ public class PerlinGrapher3D : MonoBehaviour
         }
     }
 
-    [Button]
     private void Graph()
     {
         if(cubes.Count == 0)
